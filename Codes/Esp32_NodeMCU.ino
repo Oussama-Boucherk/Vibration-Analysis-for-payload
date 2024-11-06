@@ -22,6 +22,7 @@ void loop() {
         Serial.print(" Z: "); Serial.println(az);
 
         delay(10);  // Small delay to allow serial reading
+        delay(100); // Delay for sampling
     }
     while (1);  // Stop after all data is read
     
