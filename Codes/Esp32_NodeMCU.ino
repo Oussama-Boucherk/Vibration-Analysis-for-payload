@@ -1,29 +1,62 @@
-#include <EEPROM.h>
+#include <Wire.h>
+#include <MPU6050.h>
+#include <SD.h>
+#include <SPI.h>
 
-int address = 0;
+MPU6050 mpu;
+const int chipSelect = 5;  // Chip Select pin for SD card module
 
 void setup() {
     Serial.begin(115200);
-    EEPROM.begin(512);
+    Wire.begin();
+    mpu.initialize();
+
+    // Initialize SD card
+    if (!SD.begin(chipSelect)) {
+        Serial.println("SD card initialization failed!");
+        while (1);
+    }
+    Serial.println("SD card initialized.");
+
+    // Check MPU6050 connection
+    if (mpu.testConnection()) {
+        Serial.println("MPU6050 connection successful.");
+    } else {
+        Serial.println("MPU6050 connection failed.");
+        while (1);
+    }
+
+    // Create a new data file
+    File dataFile = SD.open("datalog.csv", FILE_WRITE);
+    if (dataFile) {
+        dataFile.println("Time,Accel_X,Accel_Y,Accel_Z");  // CSV headers
+        dataFile.close();
+    }
 }
 
 void loop() {
-    while (address < 512 - 6) {  // Read in chunks (each 6 bytes for 3 axes)
-        int16_t ax, ay, az;
+    int16_t ax, ay, az;
 
-        // Read each axis value from EEPROM
-        EEPROM.get(address, ax); address += 2;
-        EEPROM.get(address, ay); address += 2;
-        EEPROM.get(address, az); address += 2;
+    // Read accelerometer values
+    mpu.getAcceleration(&ax, &ay, &az);
 
-        // Print the data for each axis
-        Serial.print("X: "); Serial.print(ax);
-        Serial.print(" Y: "); Serial.print(ay);
-        Serial.print(" Z: "); Serial.println(az);
+    // Get the current time (could use millis or a custom timer)
+    unsigned long currentTime = millis();
 
-        delay(10);  // Small delay to allow serial reading
-        delay(100); // Delay for sampling
+    // Open file to append data
+    File dataFile = SD.open("datalog.csv", FILE_WRITE);
+    if (dataFile) {
+        // Write data in CSV format
+        dataFile.print(currentTime); dataFile.print(",");
+        dataFile.print(ax); dataFile.print(",");
+        dataFile.print(ay); dataFile.print(",");
+        dataFile.println(az);
+
+        dataFile.close();
+        Serial.println("Data written to SD card.");
+    } else {
+        Serial.println("Failed to open file for writing.");
     }
-    while (1);  // Stop after all data is read
-    
+
+    delay(10);  // Adjust delay for your sampling rate needs
 }
