@@ -1,29 +1,33 @@
-#include <EEPROM.h>
+#include <Wire.h>
+#include <MPU6050.h>
 
-int address = 0;
+MPU6050 mpu;
 
 void setup() {
-    Serial.begin(115200);
-    EEPROM.begin(512);
+    Serial.begin(9600);
+    Wire.begin();  // SDA on GPIO 21, SCL on GPIO 22
+    mpu.initialize();
+
+    if (mpu.testConnection()) {
+        Serial.println("MPU6050 connection successful");
+    } else {
+        Serial.println("MPU6050 connection failed");
+    }
 }
 
 void loop() {
-    while (address < 512 - 6) {  // Read in chunks (each 6 bytes for 3 axes)
-        int16_t ax, ay, az;
-
-        // Read each axis value from EEPROM
-        EEPROM.get(address, ax); address += 2;
-        EEPROM.get(address, ay); address += 2;
-        EEPROM.get(address, az); address += 2;
-
-        // Print the data for each axis
-        Serial.print("X: "); Serial.print(ax);
-        Serial.print(" Y: "); Serial.print(ay);
-        Serial.print(" Z: "); Serial.println(az);
-
-        delay(10);  // Small delay to allow serial reading
-        delay(100); // Delay for sampling
-    }
-    while (1);  // Stop after all data is read
-    
+  
+    // Your main data logging code here
+    for(int i=0;i<1000;i++){
+   uint16_t Ax = mpu.getAccelerationX();
+   uint16_t Ay = mpu.getAccelerationY();
+   uint16_t Az = mpu.getAccelerationZ();
+   
+   Serial.print(Ax)
+   Serial.print(Ay)
+   Serial.print(Az)
+   
+   delay(60);
+   }
+   while(1){delay(10);};
 }
