@@ -13,5 +13,5 @@ print(structured_data)
 import csv
 with open("vibration_data.csv", "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["time","Accel_X", "Accel_Y", "Accel_Z"])  # Headers
+    writer.writerow(["Accel_X", "Accel_Y", "Accel_Z"])  # Headers
     writer.writerows(structured_data)
